@@ -1,4 +1,5 @@
 
+ThisBuild / tlBaseVersion := "0.3"
 
 val scala212Version = "2.12.19"
 val scala213Version = "2.13.13"
@@ -12,13 +13,17 @@ val fs2Version = "3.10.2"
 
 // Publishing
 
-ThisBuild / organization := "com.github.AM-i-B-V"
+ThisBuild / organization := "org.tpolecat"
 ThisBuild / licenses := Seq(("MIT", url("http://opensource.org/licenses/MIT")))
 ThisBuild / developers := List(
   Developer("tpolecat", "Rob Norris", "rob_norris@mac.com", url("http://www.tpolecat.org"))
 )
+ThisBuild / tlSonatypeUseLegacyHost := false
 
+ThisBuild / tlCiReleaseBranches += "series/0.1"
 
+// start MiMa from here
+ThisBuild / tlVersionIntroduced := List("2.12", "2.13", "3").map(_ -> "0.1.6").toMap
 
 ThisBuild / githubWorkflowAddedJobs +=
   WorkflowJob(
@@ -35,19 +40,18 @@ ThisBuild / githubWorkflowAddedJobs +=
 ThisBuild / libraryDependencySchemes ++= Seq(
   "org.scala-lang.modules" %% "scala-xml" % VersionScheme.Always
 )
-ThisBuild / publishMavenStyle := true
-Test / publishArtifact := false
-ThisBuild / publishTo := Some("GitHub Package Registry" at "https://maven.pkg.github.com/AM-i-B-V/natchez")
-
-ThisBuild / credentials += Credentials(
-  "GitHub Package Registry",
-  "maven.pkg.github.com",
-  sys.env.getOrElse("GITHUB_ACTOR", ""),
-  "PAT"
-)
 
 // Headers
 lazy val commonSettings = Seq(
+  headerMappings := headerMappings.value + (HeaderFileType.scala -> HeaderCommentStyle.cppStyleLineComment),
+  headerLicense := Some(
+    HeaderLicense.Custom(
+      """|Copyright (c) 2019-2020 by Rob Norris and Contributors
+         |This software is licensed under the MIT License (MIT).
+         |For more information see LICENSE or https://opensource.org/licenses/MIT
+         |""".stripMargin
+    )
+  ),
   // Testing
   libraryDependencies ++= Seq(
     "org.scalameta" %%% "munit" % "1.0.0-M11" % Test,
@@ -62,9 +66,14 @@ ThisBuild / scalaVersion := scala213Version
 ThisBuild / crossScalaVersions := Seq(scala212Version, scala213Version, scala30Version)
 ThisBuild / githubWorkflowScalaVersions := Seq("2.12", "2.13", "3")
 
+lazy val root = tlCrossRootProject.aggregate(
+  core,
+  xray
+)
 
-lazy val core = crossProject(JVMPlatform)
+lazy val core = crossProject(JSPlatform, JVMPlatform, NativePlatform)
   .in(file("modules/core"))
+  .enablePlugins(AutomateHeaderPlugin)
   .settings(commonSettings)
   .settings(
     name := "natchez-core",
@@ -78,11 +87,15 @@ lazy val core = crossProject(JVMPlatform)
       "org.scala-lang.modules" %%% "scala-collection-compat" % collectionCompatVersion
     )
   )
+  .nativeSettings(
+    tlVersionIntroduced := List("2.12", "2.13", "3").map(_ -> "0.1.7").toMap
+  )
 
-lazy val xray = crossProject(JVMPlatform)
+lazy val xray = crossProject(JSPlatform, JVMPlatform)
   .crossType(CrossType.Pure)
   .in(file("modules/xray"))
   .dependsOn(core)
+  .disablePlugins(TypelevelSonatypePlugin)
   .settings(commonSettings)
   .settings(
     name := "natchez-xray",
@@ -92,12 +105,17 @@ lazy val xray = crossProject(JVMPlatform)
       "co.fs2" %%% "fs2-io" % fs2Version,
       "com.comcast" %%% "ip4s-core" % "3.5.0",
       "org.scodec" %%% "scodec-bits" % "1.1.38"
-    ),
-    publishTo := Some("GitHub Package Registry" at "https://maven.pkg.github.com/AM-i-B-V/natchez"),
-    credentials += Credentials(
-      "GitHub Package Registry",
-      "maven.pkg.github.com",
-      sys.env.getOrElse("GITHUB_ACTOR", ""),
-      "PAT"
     )
   )
+  .jsSettings(
+    scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule))
+  )
+
+ThisBuild / publishTo := Some("GitHub Package Registry" at "https://maven.pkg.github.com/AM-i-B-V/natchez")
+
+ThisBuild / credentials += Credentials(
+  "GitHub Package Registry",
+  "maven.pkg.github.com",
+  "BOT-AM-i",
+  "token"
+)
