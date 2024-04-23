@@ -73,7 +73,8 @@ lazy val root = tlCrossRootProject.aggregate(
 
 lazy val core = crossProject(JSPlatform, JVMPlatform, NativePlatform)
   .in(file("modules/core"))
-  .disablePlugins(TypelevelSonatypePlugin, NoPublishPlugin)
+  .enablePlugins(NoPublishPlugin)
+  .disablePlugins(TypelevelSonatypePlugin)
   .settings(commonSettings)
   .settings(
     name := "natchez-core",
@@ -94,7 +95,8 @@ lazy val core = crossProject(JSPlatform, JVMPlatform, NativePlatform)
 lazy val xray = crossProject(JVMPlatform)
   .crossType(CrossType.Pure)
   .in(file("modules/xray"))
-  .disablePlugins(TypelevelSonatypePlugin, NoPublishPlugin)
+  .enablePlugins(NoPublishPlugin)
+  .disablePlugins(TypelevelSonatypePlugin)
   .settings(commonSettings)
   .settings(
     name := "natchez-xray",
