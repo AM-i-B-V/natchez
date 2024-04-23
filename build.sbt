@@ -13,7 +13,7 @@ val fs2Version = "3.10.2"
 
 // Publishing
 
-ThisBuild / organization := "org.tpolecat"
+ThisBuild / organization := "org.ami.b.v"
 ThisBuild / licenses := Seq(("MIT", url("http://opensource.org/licenses/MIT")))
 ThisBuild / developers := List(
   Developer("tpolecat", "Rob Norris", "rob_norris@mac.com", url("http://www.tpolecat.org"))
@@ -63,7 +63,7 @@ lazy val commonSettings = Seq(
 
 // Compilation
 ThisBuild / scalaVersion := scala213Version
-ThisBuild / crossScalaVersions := Seq(scala212Version, scala213Version, scala30Version)
+ThisBuild / crossScalaVersions := Seq(scala30Version)
 ThisBuild / githubWorkflowScalaVersions := Seq("2.12", "2.13", "3")
 
 lazy val root = tlCrossRootProject.aggregate(
@@ -73,7 +73,7 @@ lazy val root = tlCrossRootProject.aggregate(
 
 lazy val core = crossProject(JSPlatform, JVMPlatform, NativePlatform)
   .in(file("modules/core"))
-  .enablePlugins(AutomateHeaderPlugin)
+  .disablePlugins(TypelevelSonatypePlugin, NoPublishPlugin)
   .settings(commonSettings)
   .settings(
     name := "natchez-core",
@@ -91,11 +91,10 @@ lazy val core = crossProject(JSPlatform, JVMPlatform, NativePlatform)
     tlVersionIntroduced := List("2.12", "2.13", "3").map(_ -> "0.1.7").toMap
   )
 
-lazy val xray = crossProject(JSPlatform, JVMPlatform)
+lazy val xray = crossProject(JVMPlatform)
   .crossType(CrossType.Pure)
   .in(file("modules/xray"))
-  .dependsOn(core)
-  .disablePlugins(TypelevelSonatypePlugin)
+  .disablePlugins(TypelevelSonatypePlugin, NoPublishPlugin)
   .settings(commonSettings)
   .settings(
     name := "natchez-xray",
@@ -104,11 +103,9 @@ lazy val xray = crossProject(JSPlatform, JVMPlatform)
       "io.circe" %%% "circe-core" % "0.14.6",
       "co.fs2" %%% "fs2-io" % fs2Version,
       "com.comcast" %%% "ip4s-core" % "3.5.0",
-      "org.scodec" %%% "scodec-bits" % "1.1.38"
+      "org.scodec" %%% "scodec-bits" % "1.1.38",
+      "org.tpolecat" %% "natchez-core" % "0.3.5"
     )
-  )
-  .jsSettings(
-    scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule))
   )
 
 ThisBuild / publishTo := Some("GitHub Package Registry" at "https://maven.pkg.github.com/AM-i-B-V/natchez")
@@ -117,5 +114,5 @@ ThisBuild / credentials += Credentials(
   "GitHub Package Registry",
   "maven.pkg.github.com",
   "BOT-AM-i",
-  "token"
+  System.getenv("GITHUB_TOKEN")
 )
