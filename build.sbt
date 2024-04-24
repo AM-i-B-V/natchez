@@ -1,4 +1,6 @@
 
+import org.typelevel.sbt.gha.WorkflowStep
+import org.typelevel.sbt.gha.WorkflowStep.Sbt
 ThisBuild / tlBaseVersion := "0.3"
 
 val scala212Version = "2.12.19"
@@ -118,3 +120,5 @@ ThisBuild / credentials += Credentials(
   "BOT-AM-i",
   System.getenv("GITHUB_TOKEN")
 )
+
+ThisBuild / githubWorkflowPublish := Seq(Sbt(name = Some("Publish"), commands = List("+ publish")))
