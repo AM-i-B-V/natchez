@@ -1,4 +1,3 @@
-
 import org.typelevel.sbt.gha.WorkflowStep
 import org.typelevel.sbt.gha.WorkflowStep.Sbt
 ThisBuild / tlBaseVersion := "0.3"
@@ -112,7 +111,9 @@ lazy val xray = crossProject(JVMPlatform)
     )
   )
 
-ThisBuild / publishTo := Some("GitHub Package Registry" at "https://maven.pkg.github.com/AM-i-B-V/natchez")
+ThisBuild / publishTo := Some(
+  "GitHub Package Registry".at("https://maven.pkg.github.com/AM-i-B-V/natchez")
+)
 
 ThisBuild / credentials += Credentials(
   "GitHub Package Registry",
