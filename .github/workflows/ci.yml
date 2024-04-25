@@ -263,32 +263,3 @@ jobs:
         with:
           modules-ignore: rootjs_2.12 rootjs_2.13 rootjs_3 natchez-core_native0.4_2.12 natchez-core_native0.4_2.13 natchez-core_native0.4_3 natchez-xray_2.12 natchez-xray_2.13 natchez-xray_3 natchez-core_sjs1_2.12 natchez-core_sjs1_2.13 natchez-core_sjs1_3 natchez-core_2.12 natchez-core_2.13 natchez-core_3 rootjvm_2.12 rootjvm_2.13 rootjvm_3 rootnative_2.12 rootnative_2.13 rootnative_3
           configs-ignore: test scala-tool scala-doc-tool test-internal
-
-  docs:
-    name: Make site
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
-        scala: [2.13.13]
-        java: [temurin@11]
-    runs-on: ${{ matrix.os }}
-    steps:
-      - name: Checkout current branch (full)
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Setup Java (temurin@8)
-        id: setup-java-temurin-8
-        if: matrix.java == 'temurin@8'
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: 8
-          cache: sbt
-
-      - name: sbt update
-        if: matrix.java == 'temurin@8' && steps.setup-java-temurin-8.outputs.cache-hit == 'false'
-        run: sbt +update
-
-      - run: sbt '++ ${{ matrix.scala }}' docs/makeSite
